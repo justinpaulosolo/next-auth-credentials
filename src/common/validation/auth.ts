@@ -6,7 +6,7 @@ export const loginSchema = z.object({
 })
 
 export const signUpSchema = loginSchema.extend({
-  userName: z.string(),
+  username: z.string(),
 })
 
 export type ILogin = z.infer<typeof loginSchema>;
