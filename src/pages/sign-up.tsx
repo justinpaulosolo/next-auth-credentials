@@ -6,23 +6,31 @@ import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { ILogin, loginSchema } from "../common/validation/auth";
+import { ISignUp, signUpSchema } from "../common/validation/auth";
 import { trpc } from "../common/client/trpc";
-import { signIn } from "next-auth/react";
 
-const Home: NextPage = () => {
-  const { register, handleSubmit } = useForm<ILogin>({
-    resolver: zodResolver(loginSchema),
+const SignUp: NextPage = () => {
+  const router = useRouter();
+  const { register, handleSubmit } = useForm<ISignUp>({
+    resolver: zodResolver(signUpSchema),
   });
 
-  const onSubmit = useCallback(async (data: ILogin) => {
-    await signIn("credentials", { ...data, callbackUrl: "/dashboard" });
-  }, []);
+  const { mutateAsync } = trpc.useMutation(["signup"]);
+
+  const onSubmit = useCallback(
+    async (data: ISignUp) => {
+      const result = await mutateAsync(data);
+      if (result.status === 201) {
+        router.push("/");
+      }
+    },
+    [mutateAsync, router]
+  );
 
   return (
     <div>
       <Head>
-        <title>Login</title>
+        <title>Register</title>
         <meta name="description" content="next page" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -34,7 +42,13 @@ const Home: NextPage = () => {
         >
           <div className="card w-96 bg-base-100 shadow-xl">
             <div className="card-body">
-              <h2 className="card-title">Welcome back!</h2>
+              <h2 className="card-title">Create an account!</h2>
+              <input
+                type="text"
+                placeholder="Type your username..."
+                className="input input-bordered w-full max-w-xs my-2"
+                {...register("username")}
+              />
               <input
                 type="email"
                 placeholder="Type your email..."
@@ -48,10 +62,10 @@ const Home: NextPage = () => {
                 {...register("password")}
               />
               <div className="card-actions items-center flex justify-between">
-                <Link href="/sign-up" className="link">
-                  Go to sign up
+                <Link href="/" className="link">
+                  Go to login
                 </Link>
-                <button className="btn btn-secondary">Login</button>
+                <button className="btn btn-secondary">Sign up</button>
               </div>
             </div>
           </div>
@@ -61,4 +75,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default SignUp;
